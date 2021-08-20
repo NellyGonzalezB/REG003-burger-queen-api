@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
-const User = require ('../model/user-model');
+const moment = require('moment');
+const User = require('../model/user-model');
+const config = require('../config');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;
@@ -14,34 +16,47 @@ module.exports = (secret) => (req, resp, next) => {
     return next();
   }
 
-  jwt.verify(token, secret, (err, decodedToken) => {
+  jwt.verify(token, secret, async (err, decodedToken) => {
     if (err) {
       return next(403);
     }
 
     // TODO: Verificar identidad del usuario usando `decodeToken.uid`
+    try {
+      const userValidate = await User.findOne({ _id: decodedToken.uid });
+      if (!userValidate) {
+        return next(404);
+      }
+      const userValidateObject = userValidate;
+      Object.assign(req.headers, userValidateObject);
+      next();
+    } catch (error) {
+      return next(403);
+    }
+    // const payload = jwt.decodedToken(decodedToken.uid, config.secret);
+    // if (payload.exp <= moment().unix()) {
+    //   return resp.status(401).isAuthenticated({ message: 'el Token ha expirado' });
+    // }
+    // req.user = payload.sub;
+    // next();
   });
 };
-
 
 module.exports.isAuthenticated = (req) => (
   // TODO: decidir por la informacion del request si la usuaria esta autenticada
   false
 );
 
-
 module.exports.isAdmin = (req) => (
   // TODO: decidir por la informacion del request si la usuaria es admin
   false
 );
-
 
 module.exports.requireAuth = (req, resp, next) => (
   (!module.exports.isAuthenticated(req))
     ? next(401)
     : next()
 );
-
 
 module.exports.requireAdmin = (req, resp, next) => (
   // eslint-disable-next-line no-nested-ternary

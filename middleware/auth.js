@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
-const moment = require('moment');
 const User = require('../model/user-model');
-const config = require('../config');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;
@@ -23,9 +21,9 @@ module.exports = (secret) => (req, resp, next) => {
 
     // TODO: Verificar identidad del usuario usando `decodeToken.uid`
     try {
-      const userValidate = await User.findOne({ _id: decodedToken.uid });
+      const userValidate = await User.findById({ _id: decodedToken.uid });
       if (!userValidate) {
-        return next(404);
+        return resp.status(404).send({ message: 'Usuario no encontrado' });
       }
       const userValidateObject = userValidate;
       Object.assign(req.headers, userValidateObject);
@@ -47,18 +45,16 @@ module.exports.isAuthenticated = (req) => (
   false
 );
 
-module.exports.isAdmin = (req) => (
-  // TODO: decidir por la informacion del request si la usuaria es admin
-  false
-);
+module.exports.isAdmin = (req) => (req.headers.userValidate.roles.admin);
+// TODO: decidir por la informacion del request si la usuaria es admin
 
-module.exports.requireAuth = (req, resp, next) => (
+module.exports.requireAuth = (req, next) => (
   (!module.exports.isAuthenticated(req))
     ? next(401)
     : next()
 );
 
-module.exports.requireAdmin = (req, resp, next) => (
+module.exports.requireAdmin = (req, next) => (
   // eslint-disable-next-line no-nested-ternary
   (!module.exports.isAuthenticated(req))
     ? next(401)

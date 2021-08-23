@@ -1,25 +1,25 @@
-// const mongoose = require('mongoose');
-// const { Schema, model } = require('mongoose');
+const mongoose = require('mongoose');
 // const mongoosePaginate = require('mongoose-paginate-v2');
 
-// const orderSchema = new Schema(
-//   {
-//     userId: {
-//       type: String,
-//     },
-//     client: {
-//       type: String,
-//     },
-//     products: [
-//       {
-//         _id: false,
-//         qty: Number,
-//         product: {
-//           type: mongoose.Schema.Types.ObjectId,
-//           ref: 'Product',
-//         },
-//       },
-//     ],
+const OrderSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+  },
+  client: {
+    type: String,
+  },
+  dateEntry: {
+    type: Date,
+    default: Date.now(),
+    required: true,
+  },
+  status: {
+    type: String,
+    default: 'pending',
+  },
+});
+
+module.exports = mongoose.model('Product', OrderSchema);
 //     status: {
 //       type: String,
 //       default: 'pending',

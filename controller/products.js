@@ -1,5 +1,5 @@
 const Product = require('../model/product-model');
-const bcrypt = require('bcrypt');
+
 module.exports = {
 // obtener Productos
   getProducts: (req, resp) => {

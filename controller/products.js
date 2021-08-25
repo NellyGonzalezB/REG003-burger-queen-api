@@ -79,10 +79,6 @@ module.exports = {
 // const app = expresps()
 // const port = process.env.PORT || 8080
 
-// //añadimos los middleware
-// app.use(bodyParser.urlencoded({ extended: false}));
-// app.use(bodyParser.json());
-
 // Hacer api respt de una tienda ficticia online
 // crearndo peticion tipo get para que muestre todos los productos
 // app.get('/api/product', (req, resp) =>{

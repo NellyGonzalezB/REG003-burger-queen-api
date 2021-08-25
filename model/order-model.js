@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-// const mongoosePaginate = require('mongoose-paginate-v2');
 
 const OrderSchema = new mongoose.Schema({
   userId: {
@@ -19,7 +18,7 @@ const OrderSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Product', OrderSchema);
+module.exports = mongoose.model('Order', OrderSchema);
 //     status: {
 //       type: String,
 //       default: 'pending',

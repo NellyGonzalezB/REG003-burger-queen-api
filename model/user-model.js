@@ -15,10 +15,13 @@ const UserSchema = new mongoose.Schema(
       type: String,
       select: false,
       require: true,
+
     },
-    signpDate: {
+    signDate: {
       type: Date,
       default: Date.now(),
+      required: false,
+
     },
     lastlogin: Date,
     roles: { admin: { type: Boolean, default: false } },
@@ -42,14 +45,14 @@ UserSchema.pre('save', function (next) {
   }
 });
 
-// Para comparar el usuario es igual al que está guardado
-UserSchema.methods.comparePassword = async function comparePassword(password) {
-  try {
-    return await bcrypt.compare(password, this.password);
-  } catch (err) {
-    console.error(err);
-  }
-};
+// // Para comparar el usuario es igual al que está guardado
+// UserSchema.methods.comparePassword = async function comparePassword(password) {
+//   try {
+//     return await bcrypt.compare(password, this.password);
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
 // UserSchema.methods.isCorrectPassword = function(password, callback){
 //   bcrypt.compare(password, this.password, function(err, same){
 //       if (err){
@@ -66,25 +69,3 @@ UserSchema.methods.comparePassword = async function comparePassword(password) {
 // };
 
 module.exports = mongoose.model('User', UserSchema);
-// userSchema.methods.encryptPassword = async (password) => {
-//   try {
-//     const salt = await bcrypt.genSalt(10);
-//     return await bcrypt.hash(password, salt);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
-// userSchema.methods.comparePassword = async function comparePassword(password) {
-//   try {
-//     return await bcrypt.compare(password, this.password);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-
-// userSchema.plugin(uniqueValidator, {
-//   message: '{PATH} debe de ser único',
-// });
-
-// userSchema.plugin(mongoosePaginate);

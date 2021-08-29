@@ -23,7 +23,7 @@ module.exports = {
     try {
       const { userId, client, products } = req.body;
 
-      if (!userId || !client || !products || products.length === 0) return next(400);
+      // if (!userId || !client || !products || products.length === 0) return next(400);
 
       const newOrder = new Order({
         userId,

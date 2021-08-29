@@ -30,8 +30,8 @@ module.exports = (app, nextMain) => {
     if (!findUser) {
       return resp.status(404).send({ message: 'Usuario no encontrado' });
     }
-    const passwordMatch = await bcrypt.compare(password);
-    if (!passwordMatch) return next(401);// no esta autorizado
+    const passwordMatch = await bcrypt.compare(password, findUser.password);
+    if (!passwordMatch) return next(401);// No autorizado
     // userModel.findOne({ email }, (err, user) => {
     //  if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
     //  if (!user) return resp.status(404).send({ message: 'usuario no existe' });

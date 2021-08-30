@@ -1,85 +1,76 @@
 const Product = require('../model/product-model');
-const { pagination } = require('../pagination');
-
+// const bcrypt = require('bcrypt');
 module.exports = {
 // obtener Productos
-  getProducts: async (req, resp, next) => {
-    // @query {String} [limit=10] Cantitad de elementos por página
-    // @query {String} [page=1] Página del listado a consultar
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const page = parseInt(req.query.page, 10) || 1;
+  getProducts: (req, resp) => {
+    Product.find({}, (err, products) => {
+      if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
+      if (!products) return resp.status(404).send({ message: 'productos no existen' });
 
-    try {
-      const products = await Product.paginate({}, { limit, page });
-
-      const url = `${req.protocol}://${req.get('host')}${req.path}`;
-
-      const links = pagination(products, url, page, limit, products.totalPages);
-
-      resp.links(links);
-
-      if (!products) {
-        return next(404);
-      }
-
-      return resp.json(products.docs);
-    } catch (error) {
-      return next(error);
-    }
-  },
-
-  getProductId: async (req, resp, next) => {
-    try {
-      const { productId } = req.params;
-
-      const productById = await Product.findById(productId);
-
-      if (!productById) {
-        return next(404);
-      }
-
-      resp.json(productById);
-    } catch (error) {
-      return next(error);
-    }
-  },
-
-  postProduct: async (req, resp) => {
-    const newProduct = new Product();
-    newProduct.name = req.body.name;
-    newProduct.price = req.body.price;
-    newProduct.image = req.body.image;
-    newProduct.category = req.body.category;
-    newProduct.dateEntry = req.body.dateEntry;
-
-    await newProduct.save((err, productStored) => {
-      if (err) resp.status(500).send({ message: `Error al salver en la base de datos: ${err}` });
-
-      resp.status(200).send({ newProduct: productStored });
+      resp.status(200).send(products);
     });
   },
-  // Editar productos
-  putProduct: async (req, resp) => {
-    const editProduct = await Product.findByIdAndUpdate(
-      req.params.productId,
-      req.body,
-      { new: true },
-    );
-    resp.json(editProduct);
+
+  getProductId: (req, resp) => {
+    // eslint-disable-next-line prefer-destructuring
+    const productId = req.params.productId;
+
+    Product.findById(productId, (err, product) => {
+      if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
+      if (!product) return resp.status(404).send({ message: 'El producto no existe' });
+
+      resp.status(200).send({ product });
+    });
   },
 
-  deleteProduct: async (req, resp, next) => {
-    const { productId } = req.params;
+  postProduct: (req, resp) => {
+    // eslint-disable-next-line no-console
+    console.log('POST/products');
+    // eslint-disable-next-line no-console
+    console.log((req.body));
 
-    const productDeleteId = await Product.findByIdAndDelete(productId);
-    if (!productDeleteId) {
-      return next(404);
-    }
+    const product = new Product();
+    product.name = req.body.name;
+    product.price = req.body.price;
+    product.image = req.body.image;
+    product.category = req.body.category;
+    product.dateEntry = req.body.dateEntry;
 
-    resp.json(productDeleteId);
+    product.save((err, productStored) => {
+      if (err) return resp.status(500).send({ message: `Error al salver en la base de datos: ${err}` });
+
+      return resp.status(200).send({ product: productStored });
+    });
+  },
+
+  putProduct: (req, resp) => {
+    // eslint-disable-next-line prefer-destructuring
+    const productId = req.params.productId;
+    const update = req.body;
+
+    Product.findByIdAndUpdate(productId, update, (err, productUpdate) => {
+      if (err) resp.status(500).send({ message: `Error al actualizar producto: ${err}` });
+
+      resp.status(200).send({ message: productUpdate });
+    });
+  },
+
+  deleteProduct: (req, resp) => {
+    // eslint-disable-next-line prefer-destructuring
+    const productId = req.params.productId;
+
+    Product.findById(productId, (err, product) => {
+      if (err) resp.status(500).send({ message: `Error al borrar producto: ${err}` });
+
+      product.remove((err) => {
+        if (err) resp.status(500).send({ message: `Error al borrar producto: ${err}` });
+        resp.status(200).send({ message: 'El producto ha sido eliminado' });
+      });
+    });
   },
 };
-
+// @query {String} [limit=10] Cantitad de elementos por página
+// @query {String} [page=1] Página del listado a consultar
 // Metodo http y codigo de respuestas
 // 'use strict'
 // const expresps = require('expresps');

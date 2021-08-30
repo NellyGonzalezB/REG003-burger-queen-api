@@ -1,44 +1,60 @@
 const Order = require('../model/order-model');
+const { pagination } = require('../pagination');
 
+// crear odenes
 module.exports = {
-  // obtener orden GET /orders/:orderId
-  getOrders: async (req, res, next) => {
-    try {
-      const { orderId } = req.params;
-
-      if (!orderId) {
-        res.sendStatus(401);
-      }
-      const getOrder = await Order.findOne({ _id: orderId });
-      if (!getOrder) {
-        res.sendStatus(404);
-      }
-      return res.status(200).json(getOrder);
-    } catch (err) {
-      return next(404);
-    }
-  },
-  // POST /orders
   postOrder: async (req, resp, next) => {
     try {
       const { userId, client, products } = req.body;
 
-      // if (!userId || !client || !products || products.length === 0) return next(400);
+      if (!userId || !client || !products || products.length === 0) return next(400);
 
       const newOrder = new Order({
         userId,
         client,
-        products,
+        products: products.map((product) => ({
+          qty: product.qty,
+          product: product.productId,
+        })),
       });
 
-      const saveOrder = await newOrder.save();
-      return resp.status(200).json(saveOrder);
-    } catch (err) {
-      next(err);
+      // Guardar en database
+      await newOrder.save();
+
+      const completeOrder = await newOrder.populate('products.product')
+        .execPopulate();
+
+      return resp.json(completeOrder);
+    } catch (error) {
+      return next(error);
     }
   },
 
-  // obtener orden por id orders/:orderId
+  // obtener orden
+  getOrders: async (req, resp, next) => {
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+
+    try {
+      const orders = await Order.paginate({}, { limit, page });
+
+      const url = `${req.protocol}://${req.get('host')}${req.path}`;
+
+      const links = pagination(orders, url, page, limit, orders.totalPages);
+
+      resp.links(links);
+
+      if (!orders) {
+        return next(404);
+      }
+
+      return resp.json(orders.docs);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  // obtener orden por id
   getOrderById: async (req, resp, next) => {
     try {
       const { orderId } = req.params;
@@ -54,22 +70,38 @@ module.exports = {
       return next(error);
     }
   },
-  // PUT /orders
-  putOrder: async (req, resp, next) => {
+
+  // modificar order
+  putOrder: async (req, res, next) => {
+    const { orderId } = req.params;
+
+    const {
+      status,
+    } = req.body;
+
     try {
-      const { orderId } = req.params;
+      if (Object.keys(req.body).length === 0) return next(400);
 
-      if (!orderId) return next(404);
+      const statusOrder = [
+        'pending',
+        'canceled',
+        'delivering',
+        'delivered',
+      ];
+      if (status && !statusOrder.includes(status)) return next(400);
 
-      const orderUpdated = await Order.findByIdAndUpdate(orderId);
-
-      resp.json(orderUpdated);
-    } catch (error) {
-      return next(error);
+      const orderUpdated = await Order.findOneAndUpdate(
+        { _id: orderId },
+        { $set: req.body },
+        { new: true, useFindAndModify: false },
+      );
+      return res.status(200).json(orderUpdated);
+    } catch (err) {
+      next(404);
     }
   },
 
-  // eliminar orden DELETE /orders
+  // eliminar orden
   deleteOrder: async (req, resp, next) => {
     try {
       const { orderId } = req.params;

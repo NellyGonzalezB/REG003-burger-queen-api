@@ -1,6 +1,7 @@
+/* eslint-disable no-nested-ternary */
 const jwt = require('jsonwebtoken');
+
 const User = require('../model/user-model');
-// const config = require('../config');
 
 module.exports = (secret) => (req, resp, next) => {
   const { authorization } = req.headers;
@@ -15,16 +16,15 @@ module.exports = (secret) => (req, resp, next) => {
     return next();
   }
 
-  // TODO: Verificar identidad del usuario usando `decodeToken.uid`
-
+  // DONE: Verificar identidad del usuario usando `decodeToken.uid`
   jwt.verify(token, secret, async (err, decodedToken) => {
     if (err) {
       return next(403);
     }
-    const checkUser = await User.findOne({ _id: decodedToken.uid });
+    const authUser = await User.findOne({ _id: decodedToken.uid });
     try {
-      if (!checkUser) {
-        return next(404);
+      if (!authUser) {
+        return next(403);
       }
       req.authToken = decodedToken;
       return next();
@@ -34,11 +34,11 @@ module.exports = (secret) => (req, resp, next) => {
   });
 };
 
-// TODO: decidir por la informacion del request si la usuaria esta autenticada
-module.exports.isAuthenticated = (req) => req.authToken.user;
+// DONE: decidir por la informacion del request si la usuaria esta autenticada
+module.exports.isAuthenticated = (req) => (!!req.authToken);
 
-// TODO: decidir por la informacion del request si la usuaria es admin
-module.exports.isAdmin = (req) => req.authToken.user.roles.admin;
+// DONE: decidir por la informacion del request si la usuaria es admin
+module.exports.isAdmin = (req) => (!!req.authToken.roles.admin);
 
 module.exports.requireAuth = (req, resp, next) => (
   (!module.exports.isAuthenticated(req))
@@ -46,8 +46,17 @@ module.exports.requireAuth = (req, resp, next) => (
     : next()
 );
 
+// module.exports.requireUser = (req, resp, next) => (
+//   (!module.exports.isAuthenticated(req))
+//     ? next(401)
+//     // eslint-disable-next-line max-len
+// eslint-disable-next-line max-len
+//     : (!req.authToken.roles.admin && req.params.uid !== req.authToken.uid && req.params.uid !== req.authToken.email)
+//       ? next(403)
+//       : next()
+// );
+
 module.exports.requireAdmin = (req, resp, next) => (
-  // eslint-disable-next-line no-nested-ternary
   (!module.exports.isAuthenticated(req))
     ? next(401)
     : (!module.exports.isAdmin(req))

@@ -19,29 +19,48 @@ module.exports = (app, nextMain) => {
    * @auth No requiere autenticación
    */
 
-  app.post('/auth', async (req, resp, next) => {
+  app.post('/auth', (req, resp, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return resp.status(400);
     }
     // TODO: autenticar a la usuarix
+    // Problema coneccion con base de datos
+    const findUser = User.findOne({ email });
+    findUser.then((objUser) => {
+      if (!objUser) {
+        return resp.status(404).send({ message: 'Usuario no encontrado' });
+      }
+      console.log(email, password);
+      console.log(objUser.email, objUser.password);
+      bcrypt.compare(password, User.password, (err, result) => {
+        console.log('soy user.password', User.password);
+        console.log(email, password);
+        console.log(objUser.email, objUser.password);
+        if (err) console.info(err);
+        // Aqui
+        else if (!result) {
+          console.log(result);
+          return resp.status(404).send({ message: 'Contra incorrecta' });
+        }
+        // console.log('It matches');
+        const token = jwt.sign({
+          uid: objUser._id,
+          email: objUser.email,
+          roles: objUser.roles,
+        }, secret);
+        return resp.status(200).send({ token });
+        // console.log('invalid');
+      });
+    });
 
-    const findUser = await User.findOne({ email });
-    if (!findUser) {
-      return resp.status(404).send({ message: 'Usuario no encontrado' });
-    }
-    const passwordMatch = await bcrypt.compare(password, findUser.password);
-    if (!passwordMatch) return next(401);// No autorizado
+    // console.log(findUser.password);
+    // Aqui no pasa, $2b$10$BN76sNVVcxG9MgB71qFEdO67BV/I3ryNfnh1Ez0zvwCbchwjKmsu6
+
+    // if (!passwordMatch) return next(401);// No autorizado
     // userModel.findOne({ email }, (err, user) => {
     //  if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
     //  if (!user) return resp.status(404).send({ message: 'usuario no existe' });
-
-    const token = jwt.sign({
-      uid: findUser._id,
-      email: findUser.email,
-      roles: findUser.roles,
-    }, secret);
-    return resp.status(200).send({ token });
   });
   return nextMain();
 };

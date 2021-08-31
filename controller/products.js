@@ -1,7 +1,7 @@
 const Product = require('../model/product-model');
 // const bcrypt = require('bcrypt');
 module.exports = {
-// obtener Productos
+  // obtener Productos
   getProducts: (req, resp) => {
     Product.find({}, (err, products) => {
       if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
@@ -16,7 +16,7 @@ module.exports = {
     const productId = req.params.productId;
 
     Product.findById(productId, (err, product) => {
-      if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
+      if (err) return resp.status(404).send({ message: `Error al realizar la petición: ${err}` });
       if (!product) return resp.status(404).send({ message: 'El producto no existe' });
 
       resp.status(200).send({ product });
@@ -37,7 +37,7 @@ module.exports = {
     product.dateEntry = req.body.dateEntry;
 
     product.save((err, productStored) => {
-      if (err) return resp.status(500).send({ message: `Error al salver en la base de datos: ${err}` });
+      if (err) return resp.status(400).send({ message: `Error al salver en la base de datos: ${err}` });
 
       return resp.status(200).send({ product: productStored });
     });
@@ -49,9 +49,8 @@ module.exports = {
     const update = req.body;
 
     Product.findByIdAndUpdate(productId, update, (err, productUpdate) => {
-      if (err) resp.status(500).send({ message: `Error al actualizar producto: ${err}` });
-
-      resp.status(200).send({ message: productUpdate });
+      if (err) resp.status(404).send({ message: `Error al actualizar producto: ${err}` });
+      else resp.status(200).send({ message: productUpdate });
     });
   },
 
@@ -60,12 +59,14 @@ module.exports = {
     const productId = req.params.productId;
 
     Product.findById(productId, (err, product) => {
-      if (err) resp.status(500).send({ message: `Error al borrar producto: ${err}` });
+      if (err) resp.status(404).send({ message: `Error al borrar producto: ${err}` });
 
-      product.remove((err) => {
-        if (err) resp.status(500).send({ message: `Error al borrar producto: ${err}` });
-        resp.status(200).send({ message: 'El producto ha sido eliminado' });
-      });
+      else {
+        product.remove((err) => {
+          if (err) resp.status(403).send({ message: `Error al borrar producto: ${err}` });
+          resp.status(200).send({ message: 'El producto ha sido eliminado' });
+        });
+      }
     });
   },
 };

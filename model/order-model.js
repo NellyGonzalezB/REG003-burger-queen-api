@@ -12,9 +12,10 @@ const orderSchema = new Schema({
     required: true,
   },
   products: [{
+    type: String,
     qty: {
       type: Number,
-      required: true,
+      default: 1,
     },
     product: {
       type: Schema.Types.ObjectId,

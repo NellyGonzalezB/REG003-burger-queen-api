@@ -84,6 +84,7 @@ const checkAdminCredentials = () => fetch('/auth', {
   })
   .then(({ token }) => Object.assign(__e2e, { adminToken: token }));
 
+// eslint-disable-next-line consistent-return
 const waitForServerToBeReady = (retries = 10) => new Promise((resolve, reject) => {
   if (!retries) {
     return reject(new Error('Server took to long to start'));
@@ -107,10 +108,9 @@ module.exports = () => new Promise((resolve, reject) => {
   }
 
   // TODO: Configurar DB de tests
-  mongodbsetUp()
+  return mongodbsetUp()
     .then(() => {
       console.info('Staring local server...');
-      process.env.DB_URL = process.env.MONGO_URL;
       const child = spawn('node', ['index.js', process.env.PORT || 8888], {
         cwd: path.resolve(__dirname, '../'),
         stdio: ['ignore', 'pipe', 'pipe'],

@@ -1,100 +1,106 @@
 const Product = require('../model/product-model');
-// const bcrypt = require('bcrypt');
+const { pagination } = require('./pagination');
+
 module.exports = {
-  // obtener Productos
-  getProducts: (req, resp) => {
-    Product.find({}, (err, products) => {
-      if (err) return resp.status(500).send({ message: `Error al realizar la petición: ${err}` });
-      if (!products) return resp.status(404).send({ message: 'productos no existen' });
+// obtener Productos
+  getProducts: async (req, resp, next) => {
+    try {
+      const options = {
+        page: parseInt(req.query.page, 10) || 1,
+        limit: parseInt(req.query.limit, 10) || 10,
+      };
+      const products = await Product.paginate({}, options);
 
-      resp.status(200).send(products);
-    });
+      const url = `${req.protocol}://${req.get('host') + req.path}`;
+
+      const links = pagination(products, url, options.page, options.limit, products.totalPages);
+
+      resp.links(links);
+      return resp.status(200).json(products.docs);
+    } catch (err) {
+      return next(err);
+    }
   },
+  // obtener producto por id
+  getProductId: async (req, resp, next) => {
+    try {
+      const { productId } = req.params;
+      if (!productId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const product = await Product.findById(productId);
 
-  getProductId: (req, resp) => {
-    // eslint-disable-next-line prefer-destructuring
-    const productId = req.params.productId;
-
-    Product.findById(productId, (err, product) => {
-      if (err) return resp.status(404).send({ message: `Error al realizar la petición: ${err}` });
-      if (!product) return resp.status(404).send({ message: 'El producto no existe' });
-
-      resp.status(200).send({ product });
-    });
-  },
-
-  postProduct: (req, resp) => {
-    // eslint-disable-next-line no-console
-    console.log('POST/products');
-    // eslint-disable-next-line no-console
-    console.log((req.body));
-
-    const product = new Product();
-    product.name = req.body.name;
-    product.price = req.body.price;
-    product.image = req.body.image;
-    product.category = req.body.category;
-    product.dateEntry = req.body.dateEntry;
-
-    product.save((err, productStored) => {
-      if (err) return resp.status(400).send({ message: `Error al salver en la base de datos: ${err}` });
-
-      return resp.status(200).send({ product: productStored });
-    });
-  },
-
-  putProduct: (req, resp) => {
-    // eslint-disable-next-line prefer-destructuring
-    const productId = req.params.productId;
-    const update = req.body;
-
-    Product.findByIdAndUpdate(productId, update, (err, productUpdate) => {
-      if (err) resp.status(404).send({ message: `Error al actualizar producto: ${err}` });
-      else resp.status(200).send({ message: productUpdate });
-    });
-  },
-
-  deleteProduct: (req, resp) => {
-    // eslint-disable-next-line prefer-destructuring
-    const productId = req.params.productId;
-
-    Product.findById(productId, (err, product) => {
-      if (err) resp.status(404).send({ message: `Error al borrar producto: ${err}` });
-
-      else {
-        product.remove((err) => {
-          if (err) resp.status(403).send({ message: `Error al borrar producto: ${err}` });
-          resp.status(200).send({ message: 'El producto ha sido eliminado' });
-        });
+      if (!product) {
+        return resp.status(404).send({ message: 'El producto no existe' });
       }
-    });
+      return resp.status(200).send(product);
+    } catch (err) {
+      return next(err);
+    }
   },
+  // registrar productos
+
+  postProduct: async (req, resp, next) => {
+    try {
+      const product = new Product();
+      product.name = req.body.name;
+      product.price = req.body.price;
+      product.image = req.body.image;
+      product.category = req.body.category;
+      product.dateEntry = req.body.dateEntry;
+      if (!req.body.name || !req.body.price) {
+        return next(400);
+      }
+      const productStored = await product.save();
+      if (!productStored) {
+        return resp.status(400).send({ message: 'Error al salvar en la base de datos' });
+      }
+      return resp.status(200).send(productStored);
+    } catch (err) {
+      return next(err);
+    }
+  },
+  // modificar producto
+  putProduct: async (req, resp, next) => {
+    try {
+      const { productId } = req.params;
+      if (!productId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const update = req.body;
+      if (req.body.name === '' && req.body.price === '') {
+        return next(400);
+      }
+      if (typeof req.body.price !== 'number' && typeof req.body.name !== 'string') {
+        return next(400);
+      }
+      const productUpdate = await Product.findByIdAndUpdate(productId, update);
+
+      if (!productUpdate) {
+        return resp.status(404).send({ message: 'El producto no existe' });
+      }
+
+      const productNew = await Product.findById(productId);
+
+      return resp.status(200).send(productNew);
+    } catch (err) {
+      return next(err);
+    }
+  },
+
+  // DELETE
+  deleteProduct: async (req, resp, next) => {
+    try {
+      const { productId } = req.params;
+      if (!productId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const product = await Product.findById(productId);
+      if (!product) {
+        return resp.status(404).send({ message: 'El producto no existe' });
+      }
+      const productRemove = await product.remove();
+      if (!productRemove) {
+        return resp.status(500).send({ message: 'Error al hacer la petición' });
+      }
+      return resp.status(200).send({ message: 'se eliminó el producto' });
+    } catch (err) {
+      return next(err);
+    }
+  },
+
 };
-// @query {String} [limit=10] Cantitad de elementos por página
-// @query {String} [page=1] Página del listado a consultar
-// Metodo http y codigo de respuestas
-// 'use strict'
-// const expresps = require('expresps');
-// const bodyParser = require('body-parser');
-
-// const app = expresps()
-// const port = process.env.PORT || 8080
-
-// Hacer api respt de una tienda ficticia online
-// crearndo peticion tipo get para que muestre todos los productos
-// app.get('/api/product', (req, resp) =>{
-// resp.send(200,{products: []})
-// })
-
-// crearndo peticion tipo post para subir  los productos
-// app.post('/api/product', (req, resp) => {
-// console.log(req.body)
-// resp.status(200).send({message: 'el producto se a recibido'})
-// })
-
-// app.delete('/api/product', (req, resp) => {
-// });
-
-// app.listen(port, () =>{
-//     console.log(`API respT respondio correctamente en http://localhost:${port}`);
-// })

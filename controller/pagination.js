@@ -1,5 +1,5 @@
 module.exports.isAuthEmail = (email) => {
-  const regexp = new RegExp('^[^@]+@[^@]+\\.[a-zA-Z]{2,}$');
+  const regexp = /[\w._%+-]+@[\w.-]+/g;
   return regexp.test(email);
 };
 

@@ -1,8 +1,9 @@
 const bcrypt = require('bcrypt');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/auth');
 const {
   getUsers, getUserId, deleteUser, putUser, postUsers,
 } = require('../controller/users');
+// eslint-disable-next-line import/no-unresolved
 const User = require('../model/user-model');
 
 const initAdminUser = async (app, next) => {
@@ -17,48 +18,12 @@ const initAdminUser = async (app, next) => {
   };
   // TODO: crear usuaria admin
   const user = await User.findOne({ email: adminEmail });
-  console.log('Hola soy user', user);
   if (!user) {
     const newAdminUser = new User(adminUser);
     await newAdminUser.save();
   }
   return next();
 };
-// const bcrypt = require('bcrypt');
-// const User = require('../model/user-model');
-
-// const { requireAuth, requireAdmin } = require('../middleware/auth');
-
-// const {
-//   getUserId,
-//   postUsers,
-//   getUsers,
-//   deleteUser,
-//   putUser,
-// } = require('../controller/users');
-
-// const initAdminUser = async (app, next) => {
-//   const { adminEmail, adminPassword } = app.get('config');
-//   if (!adminEmail || !adminPassword) {
-//     return next();
-//   }
-
-//   const adminUser = {
-//     email: adminEmail,
-//     password: bcrypt.hashSync(adminPassword, 10),
-//     roles: { admin: true },
-//   };
-
-//   const userFind = await User.findOne({ email: adminEmail });
-//   console.log('Fares', userFind);
-//   if (!userFind) {
-//     const newAdminUser = new User(adminUser);
-//     console.log('Nathaly', adminUser.password);
-//     await newAdminUser.save();
-//   }
-
-//   return next();
-// };
 
 /*
  * Diagrama de flujo de una aplicación y petición en node - express :
@@ -109,7 +74,8 @@ module.exports = (app, next) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {403} si no es ni admin
    */
-  app.get('/users', requireAuth, getUsers);
+  app.get('/users', requireAdmin, getUsers);
+  // app.get('/users', getUsers);
 
   /**
    * @name GET /users/:uid
@@ -124,10 +90,12 @@ module.exports = (app, next) => {
    * @response {Boolean} user.roles.admin
    * @code {200} si la autenticación es correcta
    * @code {401} si no hay cabecera de autenticación
-   * @code {403} si no es ni admin o la misma usuaria
+   * @code {403} si no es ni admin o la misma usuaria???
    * @code {404} si la usuaria solicitada no existe
    */
-  app.get('/users/:uid', requireAuth, getUserId);
+  // app.get('/users/:uid', requireAuth, (req, resp) => {
+  // });
+  app.get('/users/:uid', requireAdmin, getUserId);
 
   /**
    * @name POST /users
@@ -148,6 +116,8 @@ module.exports = (app, next) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {403} si ya existe usuaria con ese `email`
    */
+  // app.post('/users', requireAdmin, (req, resp, next) => {
+  // });
   app.post('/users', requireAdmin, postUsers);
 
   /**
@@ -170,9 +140,11 @@ module.exports = (app, next) => {
    * @code {401} si no hay cabecera de autenticación
    * @code {403} si no es ni admin o la misma usuaria
    * @code {403} una usuaria no admin intenta de modificar sus `roles`
-   * @code {404} si la usuaria solicitada no exist e
+   * @code {404} si la usuaria solicitada no existe
    */
-  app.put('/users/:uid', requireAuth, putUser);
+  // app.put('/users/:uid', requireAuth, (req, resp, next) => {
+  // });
+  app.put('/users/:uid', requireAdmin, putUser);
 
   /**
    * @name DELETE /users
@@ -190,8 +162,9 @@ module.exports = (app, next) => {
    * @code {403} si no es ni admin o la misma usuaria
    * @code {404} si la usuaria solicitada no existe
    */
-  // app.delete('/users/:uid', requireUser, deleteUser);
-  app.delete('/users/:uid', requireAuth, deleteUser);
+  // app.delete('/users/:uid', requireAuth, (req, resp, next) => {
+  // });
+  app.delete('/users/:uid', requireAdmin, deleteUser);
 
   initAdminUser(app, next);
 };

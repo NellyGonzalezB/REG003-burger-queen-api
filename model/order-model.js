@@ -1,30 +1,32 @@
-const { Schema, model } = require('mongoose');
+const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
+// eslint-disable-next-line import/no-unresolved
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const orderSchema = new Schema({
 
   userId: {
     type: String,
-    required: true,
   },
   client: {
     type: String,
-    required: true,
   },
-  products: [{
-    type: String,
-    qty: {
-      type: Number,
-      default: 1,
+  products: [
+    {
+      _id: false,
+      qty: {
+        type: Number,
+        default: 1,
+      },
+      product: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product',
+      },
     },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
-    },
-  }],
+  ],
   status: {
     type: String,
+    enum: ['pending', 'canceled', 'delivering', 'delivered', 'preparing'],
     default: 'pending',
   },
   dateEntry: {
@@ -37,8 +39,8 @@ const orderSchema = new Schema({
     default: Date.now,
     // required: true,
   },
-});
+}, { versionKey: false });
 
 orderSchema.plugin(mongoosePaginate);
 
-module.exports = model('Order', orderSchema);
+module.exports = mongoose.model('Order', orderSchema);

@@ -10,13 +10,12 @@ const root = (app, next) => {
   return next();
 };
 
-// eslint-disable-next-line consistent-return
 const register = (app, routes, cb) => {
   if (!routes.length) {
     return cb();
   }
 
-  routes[0](app, (err) => {
+  return routes[0](app, (err) => {
     if (err) {
       return cb(err);
     }
@@ -29,6 +28,5 @@ module.exports = (app, next) => register(app, [
   users,
   products,
   orders,
-
   root,
 ], next);

@@ -1,144 +1,121 @@
+/* eslint-disable no-underscore-dangle */
 const bcrypt = require('bcrypt');
 const User = require('../model/user-model');
-const { isAuthEmail, pagination } = require('../pagination');
+const { isAuthEmail, pagination } = require('./pagination');
 const { isAdmin } = require('../middleware/auth');
 
-// crear admin
-// const postAdminUser = async (adminUser, next) => {
-//   try {
-//     const newUser = new User(adminUser);
-//     newUser.save();
-//     console.info('usuario creado');
-//   } catch (error) {
-//     return next(404);
-//   }
-// };
-
-// obteniendo usuario
-const getUsers = async (req, resp, next) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const page = parseInt(req.query.page, 10) || 1;
-
-  try {
-    const users = await User.paginate({}, { limit, page });
-
-    const url = `${req.protocol}://${req.get('host')}${req.path}`;
-
-    const links = pagination(users, url, page, limit, users.totalPages);
-
-    resp.links(links);
-
-    if (!users) {
-      return next(404);
-    }
-
-    return resp.json(users.docs);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// obteniendo usuario por id
-const getUserId = async (req, resp, next) => {
-  try {
-    const { uid } = req.params;
-    const userById = isAuthEmail(uid)
-      ? await User.findOne({ email: uid })
-      : await User.findById(uid);
-
-    if (!userById) {
-      return next(404);
-    }
-
-    resp.json(userById);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// registrando usuario
-const postUsers = async (req, resp, next) => {
-  try {
-    const { email, password, roles } = req.body;
-    const user = new User({ email, password, roles });
-
-    if (!email || !password) return next(400);
-
-    if (!isAuthEmail(email)) return next(400);
-
-    if (password.length < 4) return next(400);
-    // const existingEmail = await User.findOne({ email });
-    // if (existingEmail) return next(403);
-
-    const salt = bcrypt.genSaltSync();
-    user.password = bcrypt.hashSync(password, salt);
-
-    // salvar o guardar en database
-    await user.save();
-    resp.json(user);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// Eliminar usuario
-const deleteUser = async (req, resp, next) => {
-  try {
-    const { uid } = req.params;
-    const userById = isAuthEmail(uid)
-      ? await User.findOneAndDelete({ email: uid })
-      : await User.findByIdAndDelete(uid);
-
-    if (!userById) {
-      return next(404);
-    }
-
-    resp.json(userById);
-  } catch (error) {
-    return next(error);
-  }
-};
-
-// modificar usuario
-const putUser = async (req, resp, next) => {
-  try {
-    const { uid } = req.params;
-    // eslint-disable-next-line no-nested-ternary
-    const userById = User.findOne({ email: uid });
-    if (!userById) return next(404);
-
-    const { email, password, roles } = req.body;
-
-    if (!isAdmin(req) && roles && roles.admin) return next(403);
-    if (!password && !email) return next(400);
-
-    const isEqualPassword = bcrypt.compareSync(password, userById.password);
-
-    if (!isEqualPassword) {
-      const salt = bcrypt.genSaltSync();
-      userById.password = bcrypt.hashSync(password, salt);
-    }
-    if (!isAdmin(req)) {
-      await User.findByIdAndUpdate(userById._id, userById);
-    } else {
-      if (email !== userById.email) {
-        userById.email = email;
-      }
-      if (roles && roles.admin !== userById.roles.admin) {
-        userById.roles.admin = roles.admin;
-      }
-      await User.findByIdAndUpdate(userById._id, userById);
-    }
-    resp.json(userById);
-  } catch (error) {
-    return next(error);
-  }
-};
-
 module.exports = {
-  getUsers,
-  postUsers,
-  getUserId,
-  deleteUser,
-  putUser,
+  // obteniendo usuario
+  getUsers: async (req, resp, next) => {
+    try {
+      const options = {
+        page: parseInt(req.query.page, 10) || 1,
+        limit: parseInt(req.query.limit, 10) || 10,
+      };
+
+      const users = await User.paginate({}, options);
+
+      const url = `${req.protocol}://${req.get('host') + req.path}`;
+
+      const links = pagination(users, url, options.page, options.limit, users.totalPages);
+
+      resp.links(links);
+      return resp.status(200).send(users.docs);
+    } catch (err) {
+      return next(err);
+    }
+  },
+  // obteniendo usuario por id
+  getUserId: async (req, resp, next) => {
+    try {
+      const { uid } = req.params;
+      const user = (isAuthEmail(uid))
+        ? await User.findOne({ email: uid })
+        : await User.findById(uid);
+      if (!user) {
+        return next(404);
+      }
+      return resp.status(200).send(user);
+    } catch (err) {
+      return next(err);
+    }
+  },
+  // registrando usuario
+  postUsers: async (req, resp, next) => {
+    try {
+      const { email, password } = req.body;
+      if (!password || !email) { return next(400); }
+      if (!isAuthEmail(email) || password.length < 3) return next(400);
+      const UserExist = await User.findOne({ email: req.body.email });
+      if (UserExist) return next(403);
+      const user = new User();
+      user.email = req.body.email;
+      user.password = bcrypt.hashSync(req.body.password, 10);
+      user.roles = req.body.roles;
+      // Guardar en database
+      const userStored = await user.save();
+      return resp.status(200).send({
+        _id: userStored._id,
+        email: userStored.email,
+        roles: userStored.roles,
+      });
+    } catch (err) {
+      return next(err);
+    }
+  },
+
+  // Eliminar usuario
+  deleteUser: async (req, resp, next) => {
+    try {
+      const { uid } = req.params;
+      const userisAuthEmail = isAuthEmail(uid);
+      if (!userisAuthEmail) {
+        const userId = await User.findById(uid);
+        if (!userId) { return resp.status(404).send({ message: 'Usuario no encontrado' }); }
+        const userRemove = await userId.remove();
+        if (!userRemove) {
+          return resp.status(500).send({ message: 'Error al hacer la petición' });
+        }
+        return resp.status(200).send({ message: 'se eliminó el usuario' });
+      }
+      const userEmail = await User.findOne({ email: uid });
+
+      if (!userEmail) return resp.status(404).send({ message: 'El usuario no existe' });
+
+      const UserRemoveEmail = await userEmail.remove();
+      if (!UserRemoveEmail) return resp.status(500).send({ message: 'Error al hacer la petición' });
+
+      return resp.status(200).send({ message: 'Se eliminó el usuario' });
+    } catch (err) {
+      return next(err);
+    }
+  },
+  // modificar usuario
+  putUser: async (req, resp, next) => {
+    try {
+      const { uid } = req.params;
+      const update = req.body;
+
+      const user = isAuthEmail(uid)
+        ? await User.findOne({ email: uid }) // Objeto si escribió email
+        : await User.findById(uid); // Objeto si escribió id
+
+      if (!user) return next(404);
+
+      if (!isAdmin(req) && req.body.roles) return next(403);
+
+      if (Object.keys(req.body).length === 0) return next(400);
+      if (!isAuthEmail(req.body.email) && req.body.password.length < 3) return next(400);
+
+      update.password = bcrypt.hashSync(req.body.password, 10);
+      const userUpdate = isAuthEmail(uid)
+        ? await User.findOneAndUpdate({ email: uid }, update) // Objeto si escribió email
+        : await User.findByIdAndUpdate(uid, update); // Objeto si escribió id
+
+      if (!userUpdate) return resp.status(404).send({ message: 'El usuario no existe' });
+      return resp.status(200).send({ user: userUpdate });
+    } catch (err) {
+      return next(err);
+    }
+  },
 };

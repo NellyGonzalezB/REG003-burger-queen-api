@@ -1,56 +1,64 @@
+const Product = require('../model/product-model');
 const Order = require('../model/order-model');
-const { pagination } = require('../pagination');
+const { pagination } = require('./pagination');
 
 // crear odenes
 module.exports = {
   postOrder: async (req, resp, next) => {
     try {
-      const { userId, client, products } = req.body;
+      if (Object.keys(req.body).length === 0) return next(400);
+      const newOrder = new Order();
+      newOrder.userId = req.body.userId;
+      newOrder.client = req.body.client;
+      newOrder.products = req.body.products.map((product) => ({
+        qty: product.qty,
+        product: product.productId,
+      }));
+      if (!req.body.products || req.body.products.length === 0) {
+        return resp.sendStatus(400);
+      }
+      if (req.body.client === '') {
+        return resp.sendStatus(400);
+      }
+      if (!req.body.userId) {
+        return resp.sendStatus(400);
+      }
 
-      if (!userId || !client || !products || products.length === 0) return next(400);
+      const newOrderSaved = await newOrder.save();
 
-      const newOrder = new Order({
-        userId,
-        client,
-        products: products.map((product) => ({
-          qty: product.qty,
-          product: product.productId,
-        })),
-      });
-
-      // Guardar en database
-      await newOrder.save();
-
-      const completeOrder = await newOrder.populate('products.product')
+      const populatedOrder = await newOrderSaved
+        .populate('products.product')
         .execPopulate();
 
-      return resp.json(completeOrder);
-    } catch (error) {
-      return next(error);
+      return resp.status(200).send(populatedOrder);
+    } catch (err) {
+      return next(err);
     }
   },
 
   // obtener orden
   getOrders: async (req, resp, next) => {
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const page = parseInt(req.query.page, 10) || 1;
-
     try {
-      const orders = await Order.paginate({}, { limit, page });
+      const options = {
+        page: parseInt(req.query.page, 10) || 1,
+        limit: parseInt(req.query.limit, 10) || 10,
+      };
+      const orders = await Order.paginate({}, options);
+      const url = `${req.protocol}://${req.get('host') + req.path}`;
 
-      const url = `${req.protocol}://${req.get('host')}${req.path}`;
-
-      const links = pagination(orders, url, page, limit, orders.totalPages);
+      const links = pagination(orders, url, options.page, options.limit, orders.totalPages);
 
       resp.links(links);
-
       if (!orders) {
-        return next(404);
+        return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-
-      return resp.json(orders.docs);
-    } catch (error) {
-      return next(error);
+      const orderPopulate = await Product.populate(orders, { path: 'products.product' });
+      if (!orderPopulate) {
+        return resp.status(404);
+      }
+      return resp.status(200).send(orderPopulate.docs);
+    } catch (err) {
+      return next(err);
     }
   },
 
@@ -58,46 +66,59 @@ module.exports = {
   getOrderById: async (req, resp, next) => {
     try {
       const { orderId } = req.params;
-      const orderById = await Order.findById(orderId);
-      if (!orderById) {
-        return next(404);
+      if (!orderId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const order = await Order.findOne({ _id: orderId });
+      if (!order) {
+        return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const order = await orderById.populate('products.product')
-        .execPopulate();
-
-      resp.json(order);
-    } catch (error) {
-      return next(error);
+      const orderPopulate = await Product.populate(order, { path: 'products.product' });
+      if (!orderPopulate) {
+        return resp.status(404);
+      }
+      return resp.status(200).send(orderPopulate);
+    } catch (err) {
+      return next(err);
     }
   },
-
   // modificar order
-  putOrder: async (req, res, next) => {
-    const { orderId } = req.params;
-
-    const {
-      status,
-    } = req.body;
-
+  putOrder: async (req, resp, next) => {
     try {
-      if (Object.keys(req.body).length === 0) return next(400);
+      const { orderId } = req.params;
+      if (!orderId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const update = req.body;
 
-      const statusOrder = [
-        'pending',
-        'canceled',
-        'delivering',
-        'delivered',
-      ];
-      if (status && !statusOrder.includes(status)) return next(400);
+      if (update.status === 'delivered') {
+        update.dateProcessed = Date.now();
+      }
 
-      const orderUpdated = await Order.findOneAndUpdate(
-        { _id: orderId },
-        { $set: req.body },
-        { new: true, useFindAndModify: false },
-      );
-      return res.status(200).json(orderUpdated);
+      const orderUpdate = await Order.findByIdAndUpdate(orderId, update);
+
+      if (!update.userId && !update.client && !update.products && !update.status) {
+        return next(400);
+      }
+      switch (req.body.status) {
+        case 'pending':
+          break;
+        case 'canceled':
+          break;
+        case 'delivering':
+          break;
+        case 'delivered':
+          break;
+        case 'preparing':
+          break;
+        default:
+          return resp.status(400).send({ message: 'error de status' });
+      }
+
+      if (!orderUpdate) {
+        return resp.status(404).send({ message: 'La orden no existe' });
+      }
+      const OrderNew = await Order.findById(orderId);
+
+      return resp.status(200).send(OrderNew);
     } catch (err) {
-      next(404);
+      return next(err);
     }
   },
 
@@ -105,15 +126,18 @@ module.exports = {
   deleteOrder: async (req, resp, next) => {
     try {
       const { orderId } = req.params;
-
-      if (!orderId) return next(404);
-
-      const orderById = await Order.findByIdAndDelete(orderId);
-
-      resp.json(orderById);
-    } catch (error) {
-      return next(error);
+      if (!orderId.match(/^[0-9a-fA-F]{24}$/)) return next(404);
+      const order = await Order.findById(orderId);
+      if (!order) {
+        return resp.status(404).send({ message: 'La orden no existe' });
+      }
+      const orderRemove = await order.remove();
+      if (!orderRemove) {
+        return resp.status(500).send({ message: 'Error al hacer la petición' });
+      }
+      return resp.status(200).send({ message: 'orden eliminada' });
+    } catch (err) {
+      return next(err);
     }
   },
-
 };

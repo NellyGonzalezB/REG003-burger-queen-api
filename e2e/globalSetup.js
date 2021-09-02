@@ -2,7 +2,12 @@ const path = require('path');
 const { spawn } = require('child_process');
 const nodeFetch = require('node-fetch');
 const kill = require('tree-kill');
+<<<<<<< HEAD
 const mongodbsetUp = require('@shelf/jest-mongodb/setup');
+=======
+// eslint-disable-next-line import/no-unresolved
+const setUp = require('@shelf/jest-mongodb/setup');
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
 
 const config = require('../config');
 
@@ -84,7 +89,10 @@ const checkAdminCredentials = () => fetch('/auth', {
   })
   .then(({ token }) => Object.assign(__e2e, { adminToken: token }));
 
+<<<<<<< HEAD
 // eslint-disable-next-line consistent-return
+=======
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
 const waitForServerToBeReady = (retries = 10) => new Promise((resolve, reject) => {
   if (!retries) {
     return reject(new Error('Server took to long to start'));
@@ -98,15 +106,21 @@ const waitForServerToBeReady = (retries = 10) => new Promise((resolve, reject) =
           : resolve()
       ))
       .catch(() => waitForServerToBeReady(retries - 1).then(resolve, reject));
-  }, 1000);
+  }, 10000);
 });
 
+<<<<<<< HEAD
 module.exports = () => new Promise((resolve, reject) => {
+=======
+// eslint-disable-next-line no-async-promise-executor
+module.exports = () => new Promise(async (resolve, reject) => {
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
   if (process.env.REMOTE_URL) {
     console.info(`Running tests on remote server ${process.env.REMOTE_URL}`);
     return resolve();
   }
 
+<<<<<<< HEAD
   // TODO: Configurar DB de tests
   return mongodbsetUp()
     .then(() => {
@@ -143,6 +157,44 @@ module.exports = () => new Promise((resolve, reject) => {
         .catch((err) => {
           kill(child.pid, 'SIGKILL', () => reject(err));
         });
+=======
+  // DONE: Configurar DB de tests
+  await setUp();
+  process.env.DB_URL = process.env.MONGO_URL;
+
+  console.info('Staring local server...');
+  const child = spawn('node', ['index.js', process.env.PORT || 8888], {
+    cwd: path.resolve(__dirname, '../'),
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  Object.assign(__e2e, { childProcessPid: child.pid });
+
+  child.stdout.on('data', (chunk) => {
+    console.info(`\x1b[34m${chunk.toString()}\x1b[0m`);
+  });
+
+  child.stderr.on('data', (chunk) => {
+    const str = chunk.toString();
+    if (/DeprecationWarning/.test(str)) {
+      return;
+    }
+    console.error('child::stderr', str);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.error('UncaughtException!');
+    console.error(err);
+    kill(child.pid, 'SIGKILL', () => process.exit(1));
+  });
+
+  waitForServerToBeReady()
+    .then(checkAdminCredentials)
+    .then(createTestUser)
+    .then(resolve)
+    .catch((err) => {
+      kill(child.pid, 'SIGKILL', () => reject(err));
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
     });
 });
 

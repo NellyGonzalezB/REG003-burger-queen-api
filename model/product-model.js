@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+<<<<<<< HEAD
+=======
+const mongoosePaginate = require('mongoose-paginate-v2');
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
 
 const productSchema = mongoose.Schema(
   {
@@ -26,10 +30,9 @@ const productSchema = mongoose.Schema(
   },
   {
     versionKey: false,
-    timestamps: true,
   },
 );
 
-// productSchema.plugin(mongoosePaginate);
+productSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Product', productSchema);

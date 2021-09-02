@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* eslint-disable max-len */
+=======
+/* eslint-disable no-underscore-dangle */
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
 const {
   fetch,
   fetchAsTestUser,
@@ -41,7 +45,12 @@ describe('POST /orders', () => {
       })
       .then(([product, user]) => fetchAsTestUser('/orders', {
         method: 'POST',
+<<<<<<< HEAD
         body: { products: [{ product: product._id, qty: 5 }], client: 'client', userId: user._id },
+=======
+        body: { products: [{ productId: product._id, qty: 5 }], client: 'client', userId: user._id }, /* body: { products: [{ productId: product._id, qty: 5, client: 'client' }], userId: user._id } */
+
+>>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
       }))
       .then((resp) => {
         expect(resp.status).toBe(200);

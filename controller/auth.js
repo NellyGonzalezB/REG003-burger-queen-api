@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 // const jwt = require('jsonwebtoken');
 // const bcrypt = require('bcrypt');
 // const config = require('../config');
@@ -48,4 +46,3 @@
 //   });
 //   return nextMain();
 // };
->>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7

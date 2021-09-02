@@ -43,11 +43,7 @@ module.exports = {
       const product = new Product();
       product.name = req.body.name;
       product.price = req.body.price;
-<<<<<<< HEAD
-      product.image = req.body.image;
-=======
       // product.image = req.body.image;
->>>>>>> 0656cf9457f28c3651c83c51ce1a49dbb7d7afb7
       product.category = req.body.category;
       product.dateEntry = req.body.dateEntry;
       if (!req.body.name || !req.body.price) {

@@ -49,11 +49,13 @@ module.exports = {
       if (!req.body.name || !req.body.price) {
         return next(400);
       }
-      const productStored = await product.save();
-      if (!productStored) {
+      const saveProduct = await product.save();
+      // eslint-disable-next-line no-console
+      console.log(saveProduct);
+      if (!saveProduct) {
         return resp.status(400).send({ message: 'Error al salvar en la base de datos' });
       }
-      return resp.status(200).send(productStored);
+      return resp.status(200).send(saveProduct);
     } catch (err) {
       return next(err);
     }

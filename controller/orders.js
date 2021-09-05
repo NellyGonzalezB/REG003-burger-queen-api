@@ -7,13 +7,7 @@ module.exports = {
   postOrder: async (req, resp, next) => {
     try {
       if (Object.keys(req.body).length === 0) return next(400);
-      const newOrder = new Order();
-      newOrder.userId = req.body.userId;
-      newOrder.client = req.body.client;
-      newOrder.products = req.body.products.map((product) => ({
-        qty: product.qty,
-        product: product.productId,
-      }));
+
       if (!req.body.products || req.body.products.length === 0) {
         return resp.sendStatus(400);
       }
@@ -23,19 +17,52 @@ module.exports = {
       if (!req.body.userId) {
         return resp.sendStatus(400);
       }
+      const newOrder = new Order();
+      newOrder.userId = req.body.userId;
+      newOrder.client = req.body.client;
+      newOrder.products = req.body.products;
 
       const newOrderSaved = await newOrder.save();
 
-      const populatedOrder = await newOrderSaved
-        .populate('products.product')
-        .execPopulate();
+      const populatedOrder = await Order.findOne({ _id: newOrderSaved._id })
+        .populate('products.product');
 
       return resp.status(200).send(populatedOrder);
     } catch (err) {
       return next(err);
     }
   },
+  // postOrder: async (req, resp, next) => {
+  //   try {
+  //     if (Object.keys(req.body).length === 0) return next(400);
+  //     const newOrder = new Order();
+  //     newOrder.userId = req.body.userId;
+  //     newOrder.client = req.body.client;
+  //     newOrder.products = req.body.products.map((product) => ({
+  //       qty: product.qty,
+  //       product: product.productId,
+  //     }));
+  //     if (!req.body.products || req.body.products.length === 0) {
+  //       return resp.sendStatus(400);
+  //     }
+  //     if (req.body.client === '') {
+  //       return resp.sendStatus(400);
+  //     }
+  //     if (!req.body.userId) {
+  //       return resp.sendStatus(400);
+  //     }
 
+  //     const newOrderSaved = await newOrder.save();
+
+  //     const populatedOrder = await newOrderSaved
+  //       .populate('products.product')
+  //       .execPopulate();
+
+  //     return resp.status(200).send(populatedOrder);
+  //   } catch (err) {
+  //     return next(err);
+  //   }
+  // },
   // obtener orden
   getOrders: async (req, resp, next) => {
     try {

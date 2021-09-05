@@ -13,7 +13,6 @@ const orderSchema = new Schema({
   },
   products: [
     {
-      _id: false,
       qty: {
         type: Number,
         default: 1,

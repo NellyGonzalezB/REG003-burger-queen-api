@@ -1,4 +1,3 @@
-const Product = require('../model/product-model');
 const Order = require('../model/order-model');
 const { pagination } = require('./pagination');
 
@@ -63,6 +62,7 @@ module.exports = {
   //     return next(err);
   //   }
   // },
+
   // obtener orden
   getOrders: async (req, resp, next) => {
     try {
@@ -79,7 +79,7 @@ module.exports = {
       if (!orders) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Product.populate(orders, { path: 'products.product' });
+      const orderPopulate = await Order.populate(orders, { path: 'products.product' });
       if (!orderPopulate) {
         return resp.status(404);
       }
@@ -98,7 +98,7 @@ module.exports = {
       if (!order) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Product.populate(order, { path: 'products.product' });
+      const orderPopulate = await Order.populate(order, { path: 'products.product' });
       if (!orderPopulate) {
         return resp.status(404);
       }
@@ -162,7 +162,7 @@ module.exports = {
       if (!orderRemove) {
         return resp.status(500).send({ message: 'Error al hacer la petición' });
       }
-      return resp.status(200).send({ message: 'orden eliminada' });
+      return resp.status(200).send({ message: '¡orden eliminada con éxito!' });
     } catch (err) {
       return next(err);
     }

@@ -81,6 +81,8 @@ describe('POST /orders', () => {
         return resp.json();
       })
       .then((json) => {
+        // eslint-disable-next-line no-console
+        console.log(JSON.stringify(json));
         expect(typeof json._id).toBe('string');
         expect(typeof json.dateEntry).toBe('string');
         expect(Array.isArray(json.products)).toBe(true);

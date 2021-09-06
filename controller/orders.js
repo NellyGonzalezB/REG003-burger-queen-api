@@ -1,3 +1,4 @@
+const Product = require('../model/product-model');
 const Order = require('../model/order-model');
 const { pagination } = require('./pagination');
 
@@ -16,15 +17,21 @@ module.exports = {
       if (!req.body.userId) {
         return resp.sendStatus(400);
       }
+      const fixedProducts = req.body.products.map((el) => ({
+        qty: el.qty,
+        product: el.productId,
+      }
+      ));
       const newOrder = new Order();
       newOrder.userId = req.body.userId;
       newOrder.client = req.body.client;
-      newOrder.products = req.body.products;
+      newOrder.products = fixedProducts;
 
       const newOrderSaved = await newOrder.save();
 
-      const populatedOrder = await Order.findOne({ _id: newOrderSaved._id })
-        .populate('products.product');
+      const populatedOrder = await newOrderSaved
+        .populate('products.product')
+        .execPopulate();
 
       return resp.status(200).send(populatedOrder);
     } catch (err) {
@@ -79,11 +86,11 @@ module.exports = {
       if (!orders) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Order.populate(orders, { path: 'products.product' });
+      const orderPopulate = await Product.populate(orders.docs, { path: 'products._id' });
       if (!orderPopulate) {
         return resp.status(404);
       }
-      return resp.status(200).send(orderPopulate.docs);
+      return resp.status(200).send(orderPopulate);
     } catch (err) {
       return next(err);
     }
@@ -98,7 +105,7 @@ module.exports = {
       if (!order) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Order.populate(order, { path: 'products.product' });
+      const orderPopulate = await Product.populate(order, { path: 'products.product' });
       if (!orderPopulate) {
         return resp.status(404);
       }

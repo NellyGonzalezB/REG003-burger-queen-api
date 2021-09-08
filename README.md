@@ -106,16 +106,16 @@ usando el protocolo HTTP (o HTTPS).
 
 ## 7. Funcionamiento en Postman
 **Creación de Usuario Admin**
-<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/YNYOqvtvCDg41ooSby" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/YNYOqvtvCDg41ooSby">via GIPHY</a></p>
+![Alt Text](https://giphy.com/gifs/YNYOqvtvCDg41ooSby)
 
 **Obtener Token**
-<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/ZFgRTXz2ZF4vOw0ho3" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/ZFgRTXz2ZF4vOw0ho3">via GIPHY</a></p>
+![Alt Text](https://giphy.com/gifs/ZFgRTXz2ZF4vOw0ho3)
 
-> **Crear nuevo Producto**
-<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/ExVsumyC0nXqUuxJC0" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/ExVsumyC0nXqUuxJC0">via GIPHY</a></p>
+**Crear nuevo Producto**
+![Alt Text](https://giphy.com/gifs/ExVsumyC0nXqUuxJC0)
 
 **Agregar producto a Orden**
-<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/YpTCwWiqVK0sOfUS29" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/YpTCwWiqVK0sOfUS29">via GIPHY</a></p>
+![Alt Text](https://giphy.com/gifs/YpTCwWiqVK0sOfUS29)
 
 ## 8. Diagrama de flujo del JWT
 

@@ -2,14 +2,14 @@
 
 ## Índice
 
-* [1. Preámbulo](#1-pre%C3%A1mbulo)
-* [2. Resumen del proyecto](#2-resumen-del-proyecto)
-* [3. Recursos Utilizados](#3-recursos-utilizados)
-* [4. Requerimientos del cliente](#4-requerimientos-del-cliente)
-* [5. Endpoints](#5-endpoints)
-* [6. Dependencias](#6-dependencias)
-* [7.  Funcionamiento en Postman](#7-funcionamiento-postman)
-* [8. HTTP API Checklist](#7-http-api-checklist)
+* [1. Preámbulo](#1-Pre%C3%A1mbulo)
+* [2. Resumen del proyecto](#2-Resumen-del-proyecto)
+* [3. Recursos Utilizados](#3-Recursos-Utilizados)
+* [4. Requerimientos del cliente](#4-Requerimientos-del-cliente)
+* [5. Endpoints](#5-Endpoints)
+* [6. Dependencias](#6-Dependencias)
+* [7.  Funcionamiento en Postman](#7-Funcionamiento-en-Postman)
+* [8. HTTP API Checklist](#7-HTTP-API-Checklist)
 
 ## 1. Preámbulo
 
@@ -103,6 +103,19 @@ usando el protocolo HTTP (o HTTPS).
 * npm install express
 * npm install jsonwebtoken
 * npm install mongoose    
+
+## 7. Funcionamiento en Postman
+**Creación de Usuario Admin**
+<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/YNYOqvtvCDg41ooSby" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/YNYOqvtvCDg41ooSby">via GIPHY</a></p>
+
+**Obtener Token**
+<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/ZFgRTXz2ZF4vOw0ho3" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/ZFgRTXz2ZF4vOw0ho3">via GIPHY</a></p>
+
+> **Crear nuevo Producto**
+<div style="width:100%;height:0;padding-bottom:70%;position:relative;"><iframe src="https://giphy.com/embed/ExVsumyC0nXqUuxJC0" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/ExVsumyC0nXqUuxJC0">via GIPHY</a></p>
+
+**Agregar producto a Orden**
+<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/YpTCwWiqVK0sOfUS29" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/YpTCwWiqVK0sOfUS29">via GIPHY</a></p>
 
 ## 8. Diagrama de flujo del JWT
 

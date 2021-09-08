@@ -118,7 +118,7 @@ module.exports = (app, next) => {
    */
   // app.post('/users', requireAdmin, (req, resp, next) => {
   // });
-  app.post('/users', requireAdmin, postUsers);
+  app.post('/users', postUsers);
 
   /**
    * @name PUT /users

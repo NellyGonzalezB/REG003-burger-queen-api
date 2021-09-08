@@ -15,7 +15,7 @@ const productSchema = mongoose.Schema(
       // default: 'burger1.jpg',
     },
     category: {
-      type: String, enum: ['Almuerzo', 'Bebestibles'],
+      type: String, enum: ['Almuerzo', 'Bebestibles', 'Pastelería'],
     },
     dateEntry: {
       type: Date,

@@ -86,7 +86,7 @@ module.exports = {
       if (!orders) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Product.populate(orders.docs, { path: 'products._id' });
+      const orderPopulate = await Product.populate(orders.docs, { path: 'products.productId' });
       if (!orderPopulate) {
         return resp.status(404);
       }
@@ -105,7 +105,7 @@ module.exports = {
       if (!order) {
         return resp.status(404).send({ message: 'Orden no encontrada' });
       }
-      const orderPopulate = await Product.populate(order, { path: 'products.product' });
+      const orderPopulate = await Product.populate(order, { path: 'products.productId' });
       if (!orderPopulate) {
         return resp.status(404);
       }
